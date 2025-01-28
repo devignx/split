@@ -17,7 +17,7 @@ export function CreateForm({ className, ...props }) {
                 <CardHeader>
                     <CardTitle className="text-2xl">Create room</CardTitle>
                     <CardDescription>
-                        Create a room to start splitting
+                        Create a room to start splitting expenses
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
