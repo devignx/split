@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -27,7 +27,8 @@ export async function POST(request) {
             await prisma.users.createMany({ data: users })
 
             return Response.json({
-                message: "Room created"
+                message: "Room created",
+                data: newRoom
             }, {
                 status: 200
             });
