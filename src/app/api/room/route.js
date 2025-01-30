@@ -1,108 +1,61 @@
-import { v4 as uuidv4 } from "uuid"; // For unique IDs
+import { Prisma, PrismaClient } from "@prisma/client";
 
-let rooms = []; // In-memory storage for demonstration (replace with DB in production)
+const prisma = new PrismaClient();
 
-// export async function GET() {
-//   // Fetch all rooms
-//   return new Response(JSON.stringify({ success: true, rooms }), {
-//     status: 200,
-//     headers: { "Content-Type": "application/json" },
-//   });
-// }
-export async function GET(req) {
+export async function POST(request) {
     try {
-        // Extract query parameters
-        const { searchParams } = new URL(req.url);
-        const roomId = searchParams.get("id");
-
-        // Validate the room ID
-        if (!roomId) {
-            return new Response(
-                JSON.stringify({ error: "Room ID is required." }),
-                {
-                    status: 400,
-                    headers: { "Content-Type": "application/json" },
+        const data = await request.json();
+        if(data.roomName && data.roomDescription && data.currencyId && data.users.length>0) {
+            const roomstr = Str_Random(50);
+            const newRoom = await prisma.room.create({
+                data: {
+                    roomName: data.roomName,
+                    roomHash: roomstr,
+                    roomDescription: data.roomDescription,
+                    currencyId: data.currencyId,
                 }
-            );
-        }
+            })
 
-        // Find the room by ID
-        const room = rooms.find((r) => r.id === roomId);
+            const users = []
+            data.users.forEach((user)=> {
+                users.push({
+                    userName: user.userName,
+                    roomId: newRoom.id
+                })
+            })
 
-        // Handle case where the room is not found
-        if (!room) {
-            return new Response(JSON.stringify({ error: "Room not found." }), {
-                status: 404,
-                headers: { "Content-Type": "application/json" },
+            await prisma.users.createMany({ data: users })
+
+            return Response.json({
+                message: "Room created"
+            }, {
+                status: 200
             });
         }
-
-        // Return the room details
-        return new Response(JSON.stringify({ success: true, room }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
+        else {
+            return Response.json({
+                message: "Invalid request body"
+            }, {
+                status: 400
+            })
+        }
+    }
+    catch(error) {
+        return Response.json({
+            message: "Internal Server error"
+        }, {
+            status: 500
         });
-    } catch (error) {
-        console.error(error);
-        return new Response(
-            JSON.stringify({ error: "Internal Server Error" }),
-            {
-                status: 500,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
     }
 }
 
-export async function POST(req) {
-    try {
-        const body = await req.json();
-        const { users, roomName, roomDescription, currencyType } = body;
-
-        // Validation
-        if (!users || !Array.isArray(users) || users.length === 0) {
-            return new Response(
-                JSON.stringify({
-                    error: "Users are required and should be a non-empty array.",
-                }),
-                { status: 400, headers: { "Content-Type": "application/json" } }
-            );
-        }
-
-        // Generate unique user IDs for each user
-        const enrichedUsers = users.map((user) => ({
-            ...user,
-            id: uuidv4(), // Generate a unique ID for each user
-        }));
-
-        // Generate unique room ID
-        const roomId = uuidv4();
-
-        // Create the room object
-        const newRoom = {
-            id: roomId,
-            users: enrichedUsers,
-            roomName: roomName || "Untitled Room", // Default if not provided
-            roomDescription: roomDescription || "No description provided.",
-            currencyType: currencyType || "USD", // Default currency
-            createdAt: new Date().toISOString(),
-        };
-
-        // Save the room to the in-memory array (replace this with DB logic)
-        rooms.push(newRoom);
-
-        return new Response(JSON.stringify({ success: true, room: newRoom }), {
-            status: 201,
-            headers: { "Content-Type": "application/json" },
-        });
-    } catch (error) {
-        console.error(error);
-        return new Response(
-            JSON.stringify({ error: "Internal Server Error" }),
-            {
-                status: 500,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
+function Str_Random(length) {
+    let result = '';
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    
+    for (let i = 0; i < length; i++) {
+        const randomInd = Math.floor(Math.random() * characters.length);
+        result += characters.charAt(randomInd);
     }
+    return result;
 }

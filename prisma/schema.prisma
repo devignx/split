@@ -17,10 +17,11 @@ model Room {
   id              Int      @id @default(autoincrement())
   roomName        String
   roomDescription String
+  roomHash        String   @unique
   currency        Currency @relation(fields: [currencyId], references: [id])
   currencyId      Int
 
-  Users           Users[]
+  Users Users[]
 
   Expense Expense[]
 }
@@ -30,28 +31,24 @@ model Currency {
   symbol String @unique
   name   String
 
-  Room   Room[]
+  Room Room[]
 }
 
 model Users {
-  id       Int    @id @default(autoincrement())
+  id       Int       @id @default(autoincrement())
   userName String
-  room     Room   @relation(fields: [roomId], references: [id])
+  room     Room      @relation(fields: [roomId], references: [id])
   roomId   Int
-
-
-  Expense Expense[]
+  Expense  Expense[]
 }
+
 model Expense {
-  id        Int      @id @default(autoincrement())
-  roomId    Int
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  id     Int    @id @default(autoincrement())
+  roomId Int
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  name   String
+  amount Float
 
-  name      String   
-  amount    Float    
-
-  spentById Int?     // Nullable, tracks who spent
-  spentBy   Users?   @relation(fields: [spentById], references: [id], onDelete: SetNull)
-
-
+  spentById Int? // Nullable, tracks who spent
+  spentBy   Users? @relation(fields: [spentById], references: [id], onDelete: SetNull)
 }
