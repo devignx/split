@@ -9,6 +9,8 @@ export async function GET() {
         return Response.json({
             message: "currencies",
             data: currencies
+        }, {
+            status: 200
         })
     }
     catch(error) {
