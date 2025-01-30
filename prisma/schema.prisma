@@ -19,13 +19,17 @@ model Room {
   roomDescription String
   currency        Currency @relation(fields: [currencyId], references: [id])
   currencyId      Int
+
   Users           Users[]
+
+  Expense Expense[]
 }
 
 model Currency {
   id     Int    @id @default(autoincrement())
   symbol String @unique
   name   String
+
   Room   Room[]
 }
 
@@ -34,4 +38,20 @@ model Users {
   userName String
   room     Room   @relation(fields: [roomId], references: [id])
   roomId   Int
+
+
+  Expense Expense[]
+}
+model Expense {
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  name      String   
+  amount    Float    
+
+  spentById Int?     // Nullable, tracks who spent
+  spentBy   Users?   @relation(fields: [spentById], references: [id], onDelete: SetNull)
+
+
 }
