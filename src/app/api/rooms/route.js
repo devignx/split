@@ -1,21 +1,17 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { neon } from "@neondatabase/serverless";
+
+async function getData() {
+    const sql = neon(process.env.DATABASE_URL);
+    const response = await sql`SELECT version()`;
+    return response[0].version;
+}
+
+// export default async function Page() {
+//     const data = await getData();
+//     return <>{data}</>;
+// }
 
 export async function GET() {
-  try {
-    const rooms = await prisma.room.findMany();
-    return Response.json({
-      message: "rooms",
-      data: rooms,
-    });
-  } catch (error) {
-    return Response.json(
-      {
-        message: "Internal Server error",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
+    const data = await getData();
+    return Response.json(data);
 }

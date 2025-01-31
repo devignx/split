@@ -9,32 +9,41 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Combobox } from "@/components/ui/combo-box";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CreateRoom() {
-    const [users, setUsers] = useState([{ name: "", email: "" }]);
+    const [users, setUsers] = useState([{ userName: "" }]);
     const [roomName, setRoomName] = useState("");
     const [roomDescription, setRoomDescription] = useState("");
-    const [currencyType, setCurrencyType] = useState("USD");
+    const [currencyId, setcurrencyId] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const router = useRouter();
+    const [currencies, setCurrencies] = useState([]);
+    const [currenciesOptions, setCurrenciesOptions] = useState([]);
+
+    useEffect(() => {
+        fetch("/api/currency")
+            .then((res) => res.json())
+            .then((data) => {
+                setCurrencies(data.data);
+                const options = data.data.map((currency) => ({
+                    value: currency.id,
+                    label: currency.name,
+                }));
+                setCurrenciesOptions(options);
+            });
+    }, []);
 
     const handleAddUser = () => {
-        setUsers([...users, { name: "", email: "" }]);
+        setUsers([...users, { userName: "" }]);
     };
 
     const handleRemoveUser = (index) => {
@@ -60,6 +69,13 @@ export default function CreateRoom() {
         setError("");
         setSuccess(false);
 
+        console.log({
+            users,
+            roomName,
+            roomDescription,
+            currencyId,
+        });
+
         try {
             const response = await fetch("/api/room", {
                 method: "POST",
@@ -70,7 +86,7 @@ export default function CreateRoom() {
                     users,
                     roomName,
                     roomDescription,
-                    currencyType,
+                    currencyId,
                 }),
             });
 
@@ -82,10 +98,10 @@ export default function CreateRoom() {
 
             setSuccess(true);
             console.log(data);
-            router.push(`/${data?.room?.id}`);
+            router.push(`/${data?.roomHash}`);
             setRoomName("");
             setRoomDescription("");
-            setUsers([{ name: "", email: "" }]);
+            setUsers([{ name: "" }]);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -143,30 +159,38 @@ export default function CreateRoom() {
                             />
                         </div>
 
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label htmlFor="currency">Currency</Label>
                             <Select
-                                value={currencyType}
-                                onValueChange={setCurrencyType}
+                                onValueChange={setcurrencyId}
+                                className="w-full"
                             >
-                                <SelectTrigger id="currency">
+                                <SelectTrigger id="currency" className="w-full">
                                     <SelectValue placeholder="Select Currency" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="INR">
-                                        INR - Indian Rupee
-                                    </SelectItem>
-                                    <SelectItem value="USD">
-                                        USD - US Dollar
-                                    </SelectItem>
-                                    <SelectItem value="EUR">
-                                        EUR - Euro
-                                    </SelectItem>
-                                    <SelectItem value="GBP">
-                                        GBP - British Pound
-                                    </SelectItem>
+                                <SelectContent className="w-full">
+                                    {currencies.map((currency) => (
+                                        <SelectItem
+                                            key={currency.id}
+                                            value={currency.symbol}
+                                            className="w-full"
+                                        >
+                                            {currency.name} - {currency.symbol}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
+                        </div> */}
+
+                        <div className="space-y-2">
+                            <Combobox
+                                options={currenciesOptions}
+                                value={currencyId}
+                                onChange={setcurrencyId}
+                                placeholder="Select Currency"
+                                searchPlaceholder="Search Currencies..."
+                                emptyMessage="No currency found."
+                            />
                         </div>
 
                         <div className="space-y-4">
@@ -185,6 +209,7 @@ export default function CreateRoom() {
 
                             {users.map((user, index) => (
                                 <div
+                                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                                     key={index}
                                     className="flex gap-4 items-start"
                                 >
@@ -201,19 +226,6 @@ export default function CreateRoom() {
                                             }
                                             required
                                         />
-                                        {/* <Input
-                                            type="email"
-                                            placeholder="Email"
-                                            value={user.email}
-                                            onChange={(e) =>
-                                                handleUserChange(
-                                                    index,
-                                                    "email",
-                                                    e.target.value
-                                                )
-                                            }
-                                            required
-                                        /> */}
                                     </div>
                                     {users.length > 1 && (
                                         <Button
