@@ -58,6 +58,30 @@ export default function Room({ params }) {
         );
     }
 
+    const shareMenu = async () => {
+        const shareUrl = window.location.href;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: roomData.roomName,
+                    text: roomData.roomDescription,
+                    url: shareUrl,
+                });
+            } catch (error) {
+                console.error("Error sharing:", error);
+            }
+        } else {
+            // Fallback: Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                alert("Room URL copied to clipboard!");
+            } catch (error) {
+                console.error("Error copying to clipboard:", error);
+            }
+        }
+    };
+
     const { roomName, roomDescription, Users, Expense } = roomData;
 
     return (
@@ -114,9 +138,13 @@ export default function Room({ params }) {
                     </div>
                 </CardContent>
             </Card>
-            <Button onClick={() => router.back()} className="mt-6">
-                Go Back
-            </Button>
+            <div className="flex justify-center items-center gap-4 mt-6">
+                <Button onClick={() => router.back()}>Go Back</Button>
+                <Button onClick={() => router.push(`/${room_id}/expense`)}>
+                    Add Expense
+                </Button>
+                <Button onClick={shareMenu}>Share Room</Button>
+            </div>
         </div>
     );
 }
