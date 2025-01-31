@@ -21,15 +21,7 @@ export default function Room({ params }) {
                     if (response.data) {
                         console.log(response.data);
                         setRoomData(response.data);
-                        // Fetch currency data after room data is loaded
-                        fetch("/api/currency")
-                            .then((res) => res.json())
-                            .then((currencyResponse) => {
-                                const currencyData = currencyResponse.data.find(
-                                    (c) => c.id === response.data.currencyId
-                                );
-                                setCurrency(currencyData);
-                            });
+                        setCurrency(response.data.currency)
                     }
                     setLoading(false);
                 })

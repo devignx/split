@@ -12,7 +12,8 @@ export async function GET(request, { params }) {
             },
             include: {
                 Users: true,
-                Expense: true
+                Expense: true,
+                currency: true
             }
         })
 
