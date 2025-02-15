@@ -216,7 +216,7 @@ export default function CreateRoom() {
                                     <div className="flex-1 space-y-2">
                                         <Input
                                             placeholder="Name"
-                                            value={user.name}
+                                            value={user.userName}
                                             onChange={(e) =>
                                                 handleUserChange(
                                                     index,
