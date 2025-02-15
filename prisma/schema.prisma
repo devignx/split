@@ -35,12 +35,13 @@ model Currency {
 }
 
 model Users {
-  id       Int       @id @default(autoincrement())
-  userName String
-  room     Room      @relation(fields: [roomId], references: [id])
-  roomId   Int
-  Expense  Expense[]
-  Settles  Settles[]
+  id        Int       @id @default(autoincrement())
+  userName  String
+  room      Room      @relation(fields: [roomId], references: [id])
+  roomId    Int
+  Expense   Expense[]
+  settlesTo Settles[] @relation(name: "UserToSettles")
+  settlesBy Settles[] @relation(name: "UserBySettles")
 }
 
 model Expense {
@@ -55,8 +56,13 @@ model Expense {
 }
 
 model Settles {
-  id     Int   @id @default(autoincrement())
-  userId Int
-  user   Users @relation(fields: [userId], references: [id])
+  id Int @id @default(autoincrement())
+
+  owedTo Int
+  userTo Users @relation(name: "UserToSettles", fields: [owedTo], references: [id])
+
+  owedBy Int
+  userBy Users @relation(name: "UserBySettles", fields: [owedBy], references: [id])
+
   amount Int
 }

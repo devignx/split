@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-// Get expenses for a specific room_id or all expenses
 export async function GET(req) {
     try {
         const { searchParams } = new URL(req.url);
@@ -49,56 +48,45 @@ export async function GET(req) {
     }
 }
 
-// Create a new expense
-export async function POST(req) {
-    try {
-        const body = await req.json();
-        const { room_id, name, amount, spentById } = body;
-
-        // Validate input
-        if (!room_id) {
-            return new Response(
-                JSON.stringify({ error: "room_id is required." }),
-                {
-                    status: 400,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
+export async function POST(request) {
+  try {
+    const data = request.json();
+    
+    if(data.roomId && data.name && data.amount && data.spenderId && data.owes) {
+      const expense = await prisma.expense.create({
+        data: {
+          roomId: data.roomId,
+          name: data.name,
+          amount: data.amount,
+          spentById: data.spenderId
         }
+      })
 
-        if (!name || !amount) {
-            return new Response(
-                JSON.stringify({ error: "name and amount are required." }),
-                { status: 400, headers: { "Content-Type": "application/json" } }
-            );
-        }
+      const splitAmount = data.users.length == 0? 0: data.amount/data.users.length;
 
-        // Create the expense object
-        const newExpense = await prisma.expense.create({
-            data: {
-                roomId: parseInt(room_id),
-                name,
-                amount: parseFloat(amount),
-                spentById: spentById ? parseInt(spentById) : null,
-            },
-        });
+      data.owes.forEach(async (user) => {
+        await prisma.settles.create({
+          data: {
+            owedTo: data.spenderId,
+            owedBy: user.userId,
+            amount: splitAmount
+          }
+        })
+      })
 
-        return new Response(
-            JSON.stringify({ success: true, expense: newExpense }),
-            {
-                status: 201,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
-    } catch (error) {
-        return new Response(
-            JSON.stringify({ error: "Internal Server Error" }),
-            {
-                status: 500,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
+      
     }
+  }
+  catch(error) {
+    return Response.json(
+      {
+          message: "Internal Server error",
+      },
+      {
+          status: 500,
+      }
+    );
+  }
 }
 
 // Edit an existing expense by id
