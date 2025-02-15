@@ -31,6 +31,24 @@ export async function POST(request) {
 
             await prisma.users.createMany({ data: users });
 
+            const createdUsers = await prisma.users.findMany({
+                where: {
+                    roomId: newRoom.id
+                }
+            })
+
+            console.log(createdUsers)
+
+            // const settles = [];
+
+            // for(let i=0; i<data.users.length; i++){
+            //     for(let j=0; j<data.users.length; j++){
+            //         if(i!=j) {
+            //             const owedTo = 
+            //         }
+            //     }
+            // }
+
             return Response.json(
                 {
                     message: "Room created",
@@ -51,6 +69,7 @@ export async function POST(request) {
             }
         );
     } catch (error) {
+        console.log(error)
         return Response.json(
             {
                 message: "Internal Server error",
