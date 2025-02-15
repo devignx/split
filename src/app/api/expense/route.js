@@ -1,13 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-// Get expenses for a specific room_id or all expenses
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const roomId = searchParams.get("roomId");
 
-    // Return all expenses if no room_id is provided
     if (!roomId) {
       return new Response(JSON.stringify({ error: "roomId is required." }), {
         status: 400,
@@ -41,49 +39,44 @@ export async function GET(req) {
   }
 }
 
-// Create a new expense
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const body = await req.json();
-    const { room_id, name, amount, spentById } = body;
+    const data = request.json();
+    
+    if(data.roomId && data.name && data.amount && data.spenderId && data.owes) {
+      const expense = await prisma.expense.create({
+        data: {
+          roomId: data.roomId,
+          name: data.name,
+          amount: data.amount,
+          spentById: data.spenderId
+        }
+      })
 
-    // Validate input
-    if (!room_id) {
-      return new Response(JSON.stringify({ error: "room_id is required." }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      const splitAmount = data.users.length == 0? 0: data.amount/data.users.length;
+
+      data.owes.forEach(async (user) => {
+        await prisma.settles.create({
+          data: {
+            owedTo: data.spenderId,
+            owedBy: user.userId,
+            amount: splitAmount
+          }
+        })
+      })
+
+      
     }
-
-    if (!name || !amount) {
-      return new Response(
-        JSON.stringify({ error: "name and amount are required." }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Create the expense object
-    const newExpense = await prisma.expense.create({
-      data: {
-        roomId: parseInt(room_id),
-        name,
-        amount: parseFloat(amount),
-        spentById: spentById ? parseInt(spentById) : null,
-      },
-    });
-
-    return new Response(
-      JSON.stringify({ success: true, expense: newExpense }),
+  }
+  catch(error) {
+    return Response.json(
       {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
+          message: "Internal Server error",
+      },
+      {
+          status: 500,
       }
     );
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
   }
 }
 

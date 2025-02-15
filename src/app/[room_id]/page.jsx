@@ -8,13 +8,14 @@ import { useEffect, useState } from "react";
 export default function Room({ params }) {
     const { room_id } = params;
 
-    const [roomData, setRoomData] = useState(null);
+    const [roomData, setRoomData] = useState({});
     const [loading, setLoading] = useState(true);
-    const [currency, setCurrency] = useState(null);
+    const [currency, setCurrency] = useState({});
     const router = useRouter();
 
     useEffect(() => {
         if (room_id) {
+            console.log("hellooo")
             fetch(`/api/room/${room_id}`)
                 .then((res) => res.json())
                 .then((response) => {
@@ -22,15 +23,15 @@ export default function Room({ params }) {
                         console.log(response.data);
                         setRoomData(response.data);
                         setCurrency(response.data.currency)
+                        setLoading(false);
                     }
-                    setLoading(false);
                 })
                 .catch((error) => {
                     console.error("Error fetching room data:", error);
                     setLoading(false);
                 });
         }
-    }, [room_id]);
+    }, []);
 
     if (loading) {
         return (

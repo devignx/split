@@ -25,6 +25,7 @@ export async function GET(request, { params }) {
         })
     }  
     catch(error) {
+        console.log(error)
         return Response.json({
             message: "Internal Server error"
         }, {

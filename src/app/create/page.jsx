@@ -220,7 +220,7 @@ export default function CreateRoom() {
                                             onChange={(e) =>
                                                 handleUserChange(
                                                     index,
-                                                    "name",
+                                                    "userName",
                                                     e.target.value
                                                 )
                                             }
